@@ -14,7 +14,9 @@ const Joi = require('joi')
 const Campground = require("./models/campground.js");
 const catchAsync = require('./utilities/catchAsync.js')
 const errorHandle = require('./utilities/errorHandle.js');
-const { string } = require("joi");
+const Review = require("./models/review.js");
+const {campgroundSchemajoi} = require('./schemas.js')
+const {reviewSchema} = require('./schemas.js')
 
 main();
 
@@ -48,17 +50,20 @@ app.use(express.json());
 
 //Using joi as a middleware to validate the form data
 const validatorCampground = (req, res, next) =>{
-  const campgroundSchemajoi = Joi.object({
-    campground: Joi.object({
-      title: Joi.string().required(),
-      price: Joi.number().required().min(0),
-      description: Joi.string().required(),
-      location: Joi.string().required(),
-      image: Joi.string().required()
-  }).required()
-})
+  //Checking for an error
   const {error} = campgroundSchemajoi.validate(req.body)
   if(error) {
+    //Forming a message from the joi details object array
+    const msg = error.details.map(msg => msg.message).join(',');
+    throw new errorHandle(400, msg)
+  }else{
+    next()
+  }
+}
+
+const validatorReview = (req, res, next) =>{
+  const {error} = reviewSchema.validate(req.body);
+  if(error){
     const msg = error.details.map(msg => msg.message).join(',');
     throw new errorHandle(400, msg)
   }else{
@@ -67,10 +72,10 @@ const validatorCampground = (req, res, next) =>{
 }
 
 //Getting all of the campgrounds available in the database and parsing it to the index page
-app.get("/campgrounds", catchAsync(async (req, res) => {
+app.get("/campgrounds", async (req, res) => {
   const campgrounds = await Campground.find({});
   res.render("campgrounds/index.ejs", { campgrounds });
-}));
+});
 
 //Making a new custom campground
 app.get("/campgrounds/new", (req, res) => {
@@ -87,7 +92,7 @@ app.post("/campgrounds", validatorCampground, catchAsync(async (req, res, next) 
 //Showing information about a single campground
 app.get("/campgrounds/:id", catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const campground = await Campground.findById(id);
+  const campground = await Campground.findById(id).populate('reviews');
   res.render("campgrounds/show.ejs", { campground });
 }));
 
@@ -104,6 +109,24 @@ app.delete("/campgrounds/:id", catchAsync(async (req, res, next) => {
   await Campground.findByIdAndDelete(id);
   res.redirect("/campgrounds");
 }));
+
+//Handling a new review post, storing the obj id in the campgrounb reviews arr and the review itself at the reviews collection
+app.post("/campgrounds/:id/reviews", validatorReview, catchAsync(async (req, res, next)=>{
+  const campground = await Campground.findById(req.params.id)
+  const review = new Review(req.body.review);
+  campground.reviews.push(review);
+  await review.save();
+  await campground.save();
+  res.redirect(`/campgrounds/${campground._id}`)
+}))
+
+//Delete a single review
+app.delete("/campgrounds/:id/reviews/:reviewId", catchAsync( async(req, res, next)=>{
+  const {id, reviewId} = req.params;
+  await Campground.findByIdAndUpdate(id, {$pull:{reviews: reviewId}})
+  await Review.findByIdAndDelete(reviewId)
+  res.redirect(`/campgrounds/${id}`)
+}))
 
 //Handling a request to modify a campground  
 app.patch("/campgrounds/:id", validatorCampground, catchAsync(async (req, res, next) => {

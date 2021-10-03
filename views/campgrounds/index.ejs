@@ -1,7 +1,11 @@
 <% layout('layouts/BoilerPlate.ejs') %>
-<h1>All Campgrounds</h1>
-<div>
-  <a href="/campgrounds/New">Add Campground</a>
+<div class="d-flex justify-content-between">
+    <h1>All Campgrounds</h1>
+  <div>
+    <div class="mt-3">
+      <a class="btn btn-primary btn-sm" href="/campgrounds/New">Add Campground</a>
+    </div>
+  </div>
 </div>
   <% for(let campground of campgrounds){ %>
     <div class="card mb-3">
