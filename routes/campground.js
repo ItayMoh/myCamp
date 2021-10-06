@@ -1,9 +1,10 @@
 const express = require('express')
 const router = express.Router();
+
 const catchAsync = require('../utilities/catchAsync.js')
 const errorHandle = require('../utilities/errorHandle.js');
+
 const Campground = require("../models/campground.js");
-const Joi = require('joi')
 const {campgroundSchemajoi} = require('../schemas.js')
 
 
