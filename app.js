@@ -15,8 +15,8 @@ const Campground = require("./models/campground.js");
 const catchAsync = require('./utilities/catchAsync.js')
 const errorHandle = require('./utilities/errorHandle.js');
 const Review = require("./models/review.js");
-const {campgroundSchemajoi} = require('./schemas.js')
-const {reviewSchema} = require('./schemas.js')
+const {campgroundSchemajoi, reviewSchema} = require('./schemas.js')
+const campgrounds = require('./routes/campground.js')
 
 main();
 
@@ -48,19 +48,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 
-//Using joi as a middleware to validate the form data
-const validatorCampground = (req, res, next) =>{
-  //Checking for an error
-  const {error} = campgroundSchemajoi.validate(req.body)
-  if(error) {
-    //Forming a message from the joi details object array
-    const msg = error.details.map(msg => msg.message).join(',');
-    throw new errorHandle(400, msg)
-  }else{
-    next()
-  }
-}
-
 const validatorReview = (req, res, next) =>{
   const {error} = reviewSchema.validate(req.body);
   if(error){
@@ -71,44 +58,8 @@ const validatorReview = (req, res, next) =>{
   }
 }
 
-//Getting all of the campgrounds available in the database and parsing it to the index page
-app.get("/campgrounds", async (req, res) => {
-  const campgrounds = await Campground.find({});
-  res.render("campgrounds/index.ejs", { campgrounds });
-});
-
-//Making a new custom campground
-app.get("/campgrounds/new", (req, res) => {
-  res.render("campgrounds/new.ejs");
-});
-
-//Handling the new campground post request
-app.post("/campgrounds", validatorCampground, catchAsync(async (req, res, next) => {
-    const newCampground = new Campground(campground);
-    await newCampground.save();
-    res.redirect(`/campgrounds/${newCampground._id}`);
-}));
-
-//Showing information about a single campground
-app.get("/campgrounds/:id", catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const campground = await Campground.findById(id).populate('reviews');
-  res.render("campgrounds/show.ejs", { campground });
-}));
-
-//Editing a campground 
-app.get("/campgrounds/:id/edit", catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const editCampground = await Campground.findById(id);
-  res.render("campgrounds/edit.ejs", { editCampground });
-}));
-
-//Deleting a campground
-app.delete("/campgrounds/:id", catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  await Campground.findByIdAndDelete(id);
-  res.redirect("/campgrounds");
-}));
+//Routed for all campgrounds related logic
+app.use('/campgrounds', campgrounds);
 
 //Handling a new review post, storing the obj id in the campgrounb reviews arr and the review itself at the reviews collection
 app.post("/campgrounds/:id/reviews", validatorReview, catchAsync(async (req, res, next)=>{
@@ -127,16 +78,6 @@ app.delete("/campgrounds/:id/reviews/:reviewId", catchAsync( async(req, res, nex
   await Review.findByIdAndDelete(reviewId)
   res.redirect(`/campgrounds/${id}`)
 }))
-
-//Handling a request to modify a campground  
-app.patch("/campgrounds/:id", validatorCampground, catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  const { campground } = req.body;
-  await Campground.findByIdAndUpdate(id, campground, {
-    runValidators: true,
-  });
-  res.redirect(`/campgrounds/${id}`);
-}));
 
 app.all('*', (req, res, next)=>{
   next(new errorHandle(404, 'Could\'nt find page'))

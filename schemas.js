@@ -1,5 +1,7 @@
 const Joi = require('Joi')
 
+//Joi to validate Campground schema and review schema
+
 module.exports.campgroundSchemajoi = Joi.object({
     campground: Joi.object({
       title: Joi.string().required(),
@@ -13,6 +15,6 @@ module.exports.campgroundSchemajoi = Joi.object({
 module.exports.reviewSchema = Joi.object({
     review: Joi.object({
         body: Joi.string().required(),
-        rating: Joi.number().required().min(0).max(10)
+        rating: Joi.number().required().min(1).max(10)
     }).required()
 })
