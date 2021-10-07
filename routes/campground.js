@@ -26,7 +26,7 @@ const validatorCampground = (req, res, next) =>{
 //Getting all of the campgrounds available in the database and parsing it to the index page
 router.get("/", async (req, res) => {
     const campgrounds = await Campground.find({});
-    res.render("campgrounds/index.ejs", { campgrounds});
+    res.render("campgrounds/index.ejs", { campgrounds });
   });
   
   //Making a new custom campground

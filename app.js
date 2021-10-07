@@ -11,9 +11,9 @@ const morgan = require("morgan");
 const ejsMate = require("ejs-mate");
 const methodOverride = require("method-override");
 const errorHandle = require('./utilities/errorHandle.js');
+
 const session = require('express-session')
 const flash = require('connect-flash')
-
 
 //Importing routes
 const campgrounds = require('./routes/campground.js')
@@ -35,6 +35,7 @@ app.set("views", path.join(__dirname, "views"));
 //Setting the application to accept post data and parse it as json 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 
 const sessionConfig = {
   secret: 'test',
@@ -73,6 +74,7 @@ async function main() {
     console.log(err);
   }
 }
+
 
 app.all('*', (req, res, next)=>{
   next(new errorHandle(404, 'Could\'nt find page'))
