@@ -1,27 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
+//Importing Error handling functions
 const catchAsync = require('../utilities/catchAsync.js');
 const errorHandle = require('../utilities/errorHandle.js');
 
 const Campground = require("../models/campground.js");
-const {campgroundSchemajoi} = require('../schemas.js');
-const {loggedIn} = require('../middleware.js')
 
-
-
-//Using joi as a middleware to validate the form data
-const validatorCampground = (req, res, next) =>{
-    //Checking for an error
-    const {error} = campgroundSchemajoi.validate(req.body);
-    if(error) {
-      //Forming a message from the joi details object array
-      const msg = error.details.map(msg => msg.message).join(',');
-      throw new errorHandle(400, msg)
-    }else{
-      next()
-    }
-  }
+// Importing validation helper function from middlware.js
+const {loggedIn, validatorCampground, isAuthorized} = require('../middleware.js')
 
 
   //Getting all of the campgrounds available in the database and parsing it to the index page
@@ -39,6 +26,7 @@ const validatorCampground = (req, res, next) =>{
   router.post("/", loggedIn, validatorCampground, catchAsync(async (req, res, next) => {
       const {campground} = req.body;
       const newCampground = new Campground(campground);
+      newCampground.author = req.user._id;
       await newCampground.save();
       req.flash('success', 'Successfuly made a new campground');
       res.redirect(`/campgrounds/${newCampground._id}`);
@@ -47,7 +35,7 @@ const validatorCampground = (req, res, next) =>{
   //Showing information about a single campground
   router.get("/:id", catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const campground = await Campground.findById(id).populate('reviews');
+    const campground = await Campground.findById(id).populate({path:'reviews', populate: {path: 'author'}}).populate('author');
     if(!campground){
         req.flash('error', 'Campground doesn\'t exist');
         return res.redirect('/campgrounds')
@@ -56,18 +44,18 @@ const validatorCampground = (req, res, next) =>{
   }));
   
   //Editing a campground 
-  router.get("/:id/edit", loggedIn, catchAsync(async (req, res, next) => {
+  router.get("/:id/edit", loggedIn, isAuthorized, catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const editCampground = await Campground.findById(id);
-    if(!editCampground){
+    const campground = await Campground.findById(id);
+    if(!campground){
         req.flash('error', 'Campground doesn\'t exist');
         return res.redirect('/campgrounds')
     }
-    res.render("campgrounds/edit.ejs", { editCampground });
+    res.render("campgrounds/edit.ejs", { campground });
   }));
   
   //Deleting a campground
-  router.delete("/:id", loggedIn, catchAsync(async (req, res, next) => {
+  router.delete("/:id", loggedIn, isAuthorized, catchAsync(async (req, res, next) => {
     const { id } = req.params;
     await Campground.findByIdAndDelete(id);
     req.flash('success', 'Successfuly deleted campground');
@@ -75,10 +63,10 @@ const validatorCampground = (req, res, next) =>{
   }));
 
   //Handling a request to modify a campground  
-  router.patch("/:id", loggedIn, validatorCampground, catchAsync(async (req, res, next) => {
+  router.patch("/:id", loggedIn, isAuthorized, validatorCampground, catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const { campground } = req.body;
-    await Campground.findByIdAndUpdate(id, campground, {
+    const { camp } = req.body;
+    await Campground.findByIdAndUpdate(id, camp, {
       runValidators: true,
     });
     req.flash('success', 'Successfuly updated campground');

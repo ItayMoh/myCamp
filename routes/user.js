@@ -31,7 +31,7 @@ router.get('/login', alreadyLoggedIn, (req, res, next)=>{
     res.render('users/login.ejs')
 }) 
 
-router.post('/login', alreadyLoggedIn, passport.authenticate('local', {failureFlash: true, failureRedirect: '/login'}), (req, res, next)=>{
+router.post('/login', alreadyLoggedIn, passport.authenticate('local', {failureFlash: 'Invalid username or password.', failureRedirect: '/login'}), (req, res, next)=>{
     req.flash('success', 'Successfully logged in')
     const redirectUrl = req.session.originatedUrlFrom || '/campgrounds';
     delete req.session.originatedUrlFrom;

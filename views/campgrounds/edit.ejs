@@ -4,19 +4,19 @@
   <h1 class='text-center'>Edit Campground</h1>
   <div class="col-6 offset-3">
     <form
-    action="/campgrounds/<%= editCampground._id %>?_method=PATCH"
+    action="/campgrounds/<%= campground._id %>?_method=PATCH"
     method="POST" class="validated-form" novalidate>
   <div class="mb-3">
     <label class="form-label" for="title">Title</label>
-    <input class="form-control" type="text" name="campground[title]" id="title" value="<%= editCampground.title %>" required/>
+    <input class="form-control" type="text" name="campground[title]" id="title" value="<%= campground.title %>" required/>
   </div>
     <div class="mb-3">
     <label class="form-label" for="location">Location</label>
-    <input class="form-control" type="text" name="campground[location]" id="location" value="<%= editCampground.location %>" required/>
+    <input class="form-control" type="text" name="campground[location]" id="location" value="<%= campground.location %>" required/>
   </div>
   <div class="mb-3">
     <label class="form-label" for="image">Image Url</label>
-    <input class="form-control" type="text" name="campground[image]" id="image" value="<%= editCampground.image %>" required/>
+    <input class="form-control" type="text" name="campground[image]" id="image" value="<%= campground.image %>" required/>
   </div>
   <div class="mb-3">
     <label class="form-label" for="price">Campground Price</label>
@@ -24,18 +24,18 @@
       <div class="input-group-prepend">
         <span class="input-group-text" id="price-label">$</span>
       </div>
-      <input type="text" class="form-control" id="price" placeholder="0" aria-label="Username" aria-describedby="price-label" name="campground[price]" value="<%= editCampground.price %>" required>
+      <input type="text" class="form-control" id="price" placeholder="0" aria-label="Username" aria-describedby="price-label" name="campground[price]" value="<%= campground.price %>" required>
     </div>
   </div>
   <div class="mb-3">
     <label class="form-label" for="description">Description</label>
-    <textarea class="form-control" type="text" name="campground[description]" id="description" required><%= editCampground.description %></textarea>
+    <textarea class="form-control" type="text" name="campground[description]" id="description" required><%= campground.description %></textarea>
   </div>
   <div class="mb-3">
     <button class="btn btn-info" type="submit">Update Campground</button>
   </div>
 </form>
-<a href="/Campgrounds/<%= editCampground._id %>">Back to campground</a>
+<a href="/Campgrounds/<%= campground._id %>">Back to campground</a>
   </div>
 </div>
 
