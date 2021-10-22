@@ -9,7 +9,7 @@ const reviewSchema = new Schema({
   rating: {
     type: Number,
     min: 0,
-    max:10,
+    max:5,
   },
   author:{
     type: Schema.Types.ObjectId,

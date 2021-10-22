@@ -68,12 +68,6 @@ app.use((req, res, next)=>{
   next();
 })
 
-app.get('/fakeUser', async(req, res, next)=>{
-  const user = new User({email:'meme@walla.com', username:'Memelord'})
-  const newUser = await User.register(user, 'chiken')
-  res.send(newUser);
-})
-
 //Routed for all campgrounds related logic
 app.use('/campgrounds', campgroundRoutes);
 app.use('/campgrounds/:id/reviews', reviewRoutes);
